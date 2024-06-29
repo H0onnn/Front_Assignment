@@ -1,5 +1,6 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 
 module.exports = {
   mode: "development",
@@ -10,6 +11,7 @@ module.exports = {
     clean: true,
   },
   resolve: {
+    plugins: [new TsconfigPathsPlugin()],
     extensions: [".ts", ".tsx", ".js", ".jsx"],
   },
   module: {
@@ -17,9 +19,11 @@ module.exports = {
       {
         test: /\.(js|ts|tsx)$/i,
         exclude: /node_modules/,
-        use: {
-          loader: "ts-loader",
-        },
+        use: "ts-loader",
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader", "postcss-loader"],
       },
     ],
   },
@@ -34,4 +38,4 @@ module.exports = {
     hot: true,
     open: true,
   },
-};
+}
