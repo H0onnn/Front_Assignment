@@ -62,6 +62,10 @@ export const useDragAndDrop = () => {
         return
       }
 
+      if (!isMoveAllowedItem(source.index, destination.index)) {
+        return
+      }
+
       const sourceColumn = columns[sourceColumnIndex]
       const destinationColumn = columns[destinationColumnIndex]
 
