@@ -7,5 +7,6 @@ export interface Item {
 export interface Column {
   id: string
   title: string
+  subtitle: string
   items: Item[]
 }
