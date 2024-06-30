@@ -1,6 +1,6 @@
 import { SelectedItemsProvider as ContextProvider } from "context/SelectedItemContext"
 import { DragColumns } from "components/DragColumns"
-import { PageLayout } from "components/layout"
+import { PageLayout } from "components/common/layout"
 
 const App = () => {
   return (
