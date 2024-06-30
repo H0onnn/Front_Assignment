@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, ReactNode } from "react"
 interface SelectedItemsContextProps {
   selectedItems: string[]
   setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>
-  toggleItemSelection: (itemId: string) => void
+  handleSelect: (itemId: string, isMultiSelect: boolean) => void
 }
 
 const SelectedItemsContext = createContext<SelectedItemsContextProps | undefined>(undefined)
@@ -19,14 +19,18 @@ export const useSelectedItemsContext = () => {
 export const SelectedItemsProvider = ({ children }: { children: ReactNode }) => {
   const [selectedItems, setSelectedItems] = useState<string[]>([])
 
-  const toggleItemSelection = (itemId: string) => {
-    setSelectedItems((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
-    )
+  const handleSelect = (itemId: string, isMultiSelect: boolean) => {
+    setSelectedItems((prev) => {
+      if (isMultiSelect) {
+        return prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+      } else {
+        return prev.includes(itemId) && prev.length === 1 ? [] : [itemId]
+      }
+    })
   }
 
   return (
-    <SelectedItemsContext.Provider value={{ selectedItems, setSelectedItems, toggleItemSelection }}>
+    <SelectedItemsContext.Provider value={{ selectedItems, setSelectedItems, handleSelect }}>
       {children}
     </SelectedItemsContext.Provider>
   )

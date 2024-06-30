@@ -42,11 +42,11 @@ export const useDragAndDrop = () => {
         setInvalidDrop(false)
       }
     },
-    [columns],
+    [columns], // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   const onDragEnd = useCallback(
-    (result: DropResult, selectedItems: string[]) => {
+    (result: DropResult) => {
       const { source, destination } = result
 
       setInvalidDrop(false)
@@ -81,18 +81,15 @@ export const useDragAndDrop = () => {
       newColumns[destinationColumnIndex] = destinationColumn
 
       updateColumns(newColumns)
-    },
-    [columns, updateColumns],
-  )
 
-  const handleDragEnd = (result: DropResult) => {
-    onDragEnd(result, selectedItems)
-    setSelectedItems([])
-  }
+      setSelectedItems([])
+    },
+    [columns, updateColumns], // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
   return {
     columns,
-    handleDragEnd,
+    onDragEnd,
     onDragUpdate,
     invalidDrop,
   }
