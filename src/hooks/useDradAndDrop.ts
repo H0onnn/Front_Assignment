@@ -1,39 +1,99 @@
-import { useState } from "react"
-import { DropResult } from "react-beautiful-dnd"
-import { Column } from "types/column"
-import { initialColumns } from "mock/dummy"
+import { useState, useCallback } from "react"
+import { useSelectedItemsContext } from "context/SelectedItemContext"
+import { DropResult, DragUpdate } from "react-beautiful-dnd"
+import { useColumns } from "./useColumns"
+import { Item } from "types/column"
 
 export const useDragAndDrop = () => {
-  const [columns, setColumns] = useState<Column[]>(initialColumns)
+  const { columns, updateColumns } = useColumns()
+  const [invalidDrop, setInvalidDrop] = useState<boolean>(false)
+  const { selectedItems, setSelectedItems } = useSelectedItemsContext()
 
-  const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result
+  const getColumnIndexById = (id: string): number => {
+    return columns.findIndex((column) => column.id === id)
+  }
 
-    if (!destination) {
-      return
-    }
+  const isMoveAllowedColumn = (sourceIndex: number, destinationIndex: number): boolean => {
+    return !(sourceIndex === 0 && destinationIndex === 2)
+  }
 
-    const sourceColumnIndex = columns.findIndex((column) => column.id === source.droppableId)
-    const destinationColumnIndex = columns.findIndex(
-      (column) => column.id === destination.droppableId,
-    )
+  const isMoveAllowedItem = (sourceIndex: number, destinationIndex: number): boolean => {
+    return !(sourceIndex % 2 === 1 && destinationIndex % 2 === 0 && sourceIndex < destinationIndex)
+  }
 
-    const sourceColumn = columns[sourceColumnIndex]
-    const destinationColumn = columns[destinationColumnIndex]
+  const onDragUpdate = useCallback(
+    (update: DragUpdate) => {
+      const { source, destination } = update
 
-    const [movedItem] = sourceColumn.items.splice(source.index, 1)
+      if (!destination) {
+        setInvalidDrop(false)
+        return
+      }
 
-    destinationColumn.items.splice(destination.index, 0, movedItem)
+      const sourceColumnIndex = getColumnIndexById(source.droppableId)
+      const destinationColumnIndex = getColumnIndexById(destination.droppableId)
 
-    const newColumns = [...columns]
-    newColumns[sourceColumnIndex] = sourceColumn
-    newColumns[destinationColumnIndex] = destinationColumn
+      if (
+        !isMoveAllowedColumn(sourceColumnIndex, destinationColumnIndex) ||
+        !isMoveAllowedItem(source.index, destination.index)
+      ) {
+        setInvalidDrop(true)
+      } else {
+        setInvalidDrop(false)
+      }
+    },
+    [columns],
+  )
 
-    setColumns(newColumns)
+  const onDragEnd = useCallback(
+    (result: DropResult, selectedItems: string[]) => {
+      const { source, destination } = result
+
+      setInvalidDrop(false)
+
+      if (!destination) {
+        return
+      }
+
+      const sourceColumnIndex = getColumnIndexById(source.droppableId)
+      const destinationColumnIndex = getColumnIndexById(destination.droppableId)
+
+      if (!isMoveAllowedColumn(sourceColumnIndex, destinationColumnIndex)) {
+        return
+      }
+
+      const sourceColumn = columns[sourceColumnIndex]
+      const destinationColumn = columns[destinationColumnIndex]
+
+      let itemsToMove: Item[]
+      if (selectedItems.length > 0 && selectedItems.includes(result.draggableId)) {
+        itemsToMove = sourceColumn.items.filter((item) => selectedItems.includes(item.id))
+        sourceColumn.items = sourceColumn.items.filter((item) => !selectedItems.includes(item.id))
+      } else {
+        itemsToMove = [sourceColumn.items[source.index]]
+        sourceColumn.items.splice(source.index, 1)
+      }
+
+      destinationColumn.items.splice(destination.index, 0, ...itemsToMove)
+
+      const newColumns = [...columns]
+      newColumns[sourceColumnIndex] = sourceColumn
+      newColumns[destinationColumnIndex] = destinationColumn
+
+      updateColumns(newColumns)
+    },
+    [columns, updateColumns],
+  )
+
+  const handleDragEnd = (result: DropResult) => {
+    onDragEnd(result, selectedItems)
+    setSelectedItems([])
   }
 
   return {
     columns,
-    onDragEnd,
+    handleDragEnd,
+    onDragUpdate,
+    invalidDrop,
   }
 }
