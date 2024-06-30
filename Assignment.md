@@ -1,6 +1,6 @@
-# Mement AI FE Assignment
+# MementoAI FE Assignment
 
-Mement AI Frontend Developer Assignment Repository
+MementoAI Frontend Developer Assignment Repository
 
 ## 프로젝트 소개
 
